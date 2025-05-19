@@ -14,7 +14,7 @@ char* addBinary(char* a, char* b) {
     int len_a = strlen(a);
     int len_b = strlen(b);
 
-    char *s = (char *) malloc(sizeof(int) * (len_a < len_b ? len_b : len_a));
+    char *s = (char *) malloc(sizeof(int) * (len_a < len_b ? len_b : len_a) + 2);
 
     int i = len_a - 1;
     int j = len_b - 1;
