@@ -9,7 +9,7 @@ int minOperations(int* nums, int numsSize, int k) {
     uint64_t removed = 0;  // (n-1)-bit is set to 1, if the number n was removed
     int i = numsSize-1;
     int count = 0;
-    while ((removed & ((1ULL << (k+1))-1)) && i >= 0) {
+    while (count < k && i >= 0) {
         if (nums[i] <= k && !(removed & (1ULL << nums[i]))) { /* check the n-bit */
             count++;
             removed |= (1ULL << nums[i]);   /* set the n-bit */
