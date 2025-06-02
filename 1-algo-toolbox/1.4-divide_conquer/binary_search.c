@@ -37,14 +37,16 @@ void sorted_array_multiple_search() {
     for (int i = 0; i < m; i++) {
         int q;
         scanf("%d", &q);
-        printf("%d\n", binary_search(K, n, q));
+        printf("%d%c", binary_search(K, n, q), i == m-1 ? '\n' : ' ');
     }
 
     free(K);
 }
 
 int main() {
-    int K[] = {1, 3, 7, 8, 9, 12, 15};
-    int q = 9;
-    printf("%d\n", binary_search(K, 7, q));
+    //int K[] = {1, 3, 7, 8, 9, 12, 15};
+    //int q = 9;
+    //printf("%d\n", binary_search(K, 7, q));
+
+    sorted_array_multiple_search();
 }
