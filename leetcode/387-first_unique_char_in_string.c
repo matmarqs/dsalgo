@@ -1,3 +1,5 @@
+/* After a few submissions, this code beats 100% */
+
 #include <stdlib.h>
 
 typedef enum { in, not_in, ignore } state;
