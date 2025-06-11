@@ -139,47 +139,39 @@ void map_remove(HashMap *set, int key) {
 
 }
 
-/* array = nums2 */
-/* ng_array[i] = next greater element de nums2[i] */
-/* size = nums2.length */
-int inner_next_greater_element(int *array, int *ng_array, int size, int i) {
-    if (i+1 >= size) {
-        ng_array[i] = -1;
-        return ng_array[i];
-    }
-    else if (array[i+1] <= array[i]) {
-        return ng_array[i] = inner_next_greater_element(array, ng_array, size, i+1);
-    }
-    else {  /* array[i+1] > array[i] */
-        ng_array[i] = array[i+1];
-        return inner_next_greater_element(array, ng_array, size, i+1);
-    }
-}
-
-
 /**
  * Note: The returned array must be malloced, assume caller calls free().
  */
 int* nextGreaterElement(int* nums1, int nums1Size, int* nums2, int nums2Size, int* returnSize) {
-    int* ng_array = (int *) malloc(sizeof(int) * nums2Size);
-
-    inner_next_greater_element(nums2, ng_array, nums2Size, 0);
-
     HashMap *map2 = create_map(3 * nums2Size / 2);
 
-    for (int i = 0; i < nums2Size; i++) {
-        map_set(map2, nums2[i], i);
+    int *stack = (int *) malloc(sizeof(int) * nums2Size);
+    int top = -1;
+
+    // Process from right to left
+    for (int i = nums2Size-1; i >= 0; i--) {
+        while (top >= 0 && stack[top] <= nums2[i]) {
+            top--; // Pop elements smaller than current
+        }
+
+        int nextGreater = (top >= 0) ? stack[top]: -1;
+
+        map_set(map2, nums2[i], nextGreater);
+
+        stack[++top] = nums2[i]; // Push current element
     }
+    free(stack);
 
     *returnSize = nums1Size;
-    int *return_array = (int *) malloc(sizeof(int) * nums1Size);
+    int *result = (int *) malloc(sizeof(int) * nums1Size);
 
     for (int i = 0; i < nums1Size; i++) {
-        int index = map_get(map2, nums1[i]);
-        return_array[i] = ng_array[index];
+        result[i] = map_get(map2, nums1[i]);
     }
 
-    return return_array;
+    free_map(map2);
+
+    return result;
 }
 
 /************************************************************************************************/
@@ -189,7 +181,8 @@ int main() {
     int ng_array[4];
     int size = 4;
 
-    inner_next_greater_element(nums2, ng_array, size, 0);
+    //inner_next_greater_element(nums2, ng_array, size, 0);
+
 
     for (int i = 0; i < 4; i++) {
         printf("%d\n", ng_array[i]);
