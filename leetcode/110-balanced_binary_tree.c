@@ -1,3 +1,7 @@
+/* The older solution was O(n^2) */
+/* because height() is O(n) */
+/* and it was called O(n) times */
+
 #include <stdbool.h>
 
 struct TreeNode {
@@ -6,27 +10,31 @@ struct TreeNode {
     struct TreeNode *right;
 };
 
-/************************************************************/
+/***************************************************/
 
-#include <stdlib.h>
+/* This new solution is O(n), as it calculates height and checks balance simultaneously  */
 
-#define max(a, b) (((a) > (b)) ? (a) : (b))
+#include <stdlib.h> // for abs()
 
-int height(struct TreeNode *node) {
-    if (!node) return 0;
-    int left_height = height(node->left);
-    int right_height = height(node->right);
-    return max(left_height, right_height) + 1;
+// Helper function that returns a pair: (height, is_balanced)
+// We use a pointer to store the height and return the balance status
+bool checkBalance(struct TreeNode* node, int* height) {
+    if (!node) {
+        *height = 0;
+        return true;
+    }
+
+    int left_height, right_height;
+    bool left_balanced = checkBalance(node->left, &left_height);
+    bool right_balanced = checkBalance(node->right, &right_height);
+
+    *height = (left_height > right_height ? left_height : right_height) + 1;
+
+    return left_balanced && right_balanced && 
+           abs(left_height - right_height) <= 1;
 }
 
 bool isBalanced(struct TreeNode* root) {
-    if (!root)
-        return true;
-
-    int left_height = height(root->left);
-    int right_height = height(root->right);
-
-    return abs(left_height - right_height) <= 1 && isBalanced(root->left) && isBalanced(root->right);
+    int height;
+    return checkBalance(root, &height);
 }
-
-/************************************************************/
