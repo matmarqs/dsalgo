@@ -6,40 +6,30 @@ struct TreeNode {
 
 /*******************************************************************************/
 
-/* this code is wrong, because it only checks diff between parent and its children */
-/* but the minimum diff can occur between non-adjacent nodes */
-/* 
- * For example, the minimum diff below is 9-8 = 1
- *
- *      9
- *    /   \
- *   5     14
- *    \
- *     8
- *
- * */
+/* inOrderTraversal is the correct solution because it traverses the tree in sorted order */
+/* we just have to keep track of the previous node, and subtract to the current one */
 
+#include <stdlib.h>
+
+#define MYMAX (100001)
 #define min(a,b) (((a) < (b)) ? (a) : (b))
-#define MYMAX 100001 
 
-/**
- * Definition for a binary tree node.
- * struct TreeNode {
- *     int val;
- *     struct TreeNode *left;
- *     struct TreeNode *right;
- * };
- */
+void inOrderTraversal(struct TreeNode *root, struct TreeNode **prev, int *min_diff) {
+    if (!root) return;
+
+    inOrderTraversal(root->left, prev, min_diff);
+
+    if (*prev) {
+        *min_diff = min(*min_diff, root->val - (*prev)->val);
+    }
+    *prev = root;
+
+    inOrderTraversal(root->right, prev, min_diff);
+}
+
 int getMinimumDifference(struct TreeNode* root) {
-    int diff_left = (root->left) ? (root->val - root->left->val) : MYMAX;
-    int diff_right = (root->right) ? (root->right->val - root->val) : MYMAX;
-
-    if (root->left) {
-        diff_left = min(diff_left, getMinimumDifference(root->left));
-    }
-    if (root->right) {
-        diff_right = min(diff_right, getMinimumDifference(root->right));
-    }
-
-    return min(diff_left, diff_right);
+    int min_diff = MYMAX;
+    struct TreeNode *prev = NULL;
+    inOrderTraversal(root, &prev, &min_diff);
+    return min_diff;
 }
