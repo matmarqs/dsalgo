@@ -2,19 +2,19 @@
 #include <stdlib.h>
 
 #define DEFINE_QUEUE(type, name)                                                        \
-typedef struct Node {                                                                   \
+typedef struct name##_Node {                                                            \
     type data;                                                                          \
-    struct Node *next;                                                                  \
-} Node;                                                                                 \
+    struct name##_Node *next;                                                           \
+} name##_Node;                                                                          \
                                                                                         \
 typedef struct {                                                                        \
-    Node *head;                                                                         \
-    Node *tail;                                                                         \
+    name##_Node *head;                                                                  \
+    name##_Node *tail;                                                                  \
     int size;                                                                           \
 } Queue;                                                                                \
                                                                                         \
-static Node *name##_create_node(type data) {                                            \
-    Node *node = (Node *)malloc(sizeof(Node));                                          \
+static name##_Node *name##_create_node(type data) {                                     \
+    name##_Node *node = (name##_Node *)malloc(sizeof(name##_Node));                     \
     if (!node) {                                                                        \
         fprintf(stderr, "Memory allocation failed\n");                                  \
         exit(EXIT_FAILURE);                                                             \
@@ -58,7 +58,7 @@ type name##_dequeue(Queue *q) {                                                 
         exit(EXIT_FAILURE);                                                             \
     }                                                                                   \
     type data = q->head->data;                                                          \
-    Node *old_head = q->head;                                                           \
+    name##_Node *old_head = q->head;                                                    \
     q->head = q->head->next;                                                            \
     free(old_head);                                                                     \
     q->size--;                                                                          \
@@ -69,7 +69,7 @@ type name##_dequeue(Queue *q) {                                                 
 }                                                                                       \
                                                                                         \
 void name##_enqueue(Queue *q, type data) {                                              \
-    Node *new_node = name##_create_node(data);                                          \
+    name##_Node *new_node = name##_create_node(data);                                   \
     if (name##_is_empty(q)) {                                                           \
         q->head = new_node;                                                             \
         q->tail = new_node;                                                             \
@@ -82,7 +82,7 @@ void name##_enqueue(Queue *q, type data) {                                      
                                                                                         \
 void name##_free(Queue *q) {                                                            \
     while (q->head) {                                                                   \
-        Node *current = q->head;                                                        \
+        name##_Node *current = q->head;                                                 \
         q->head = q->head->next;                                                        \
         free(current);                                                                  \
     }                                                                                   \
