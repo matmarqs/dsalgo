@@ -1,3 +1,11 @@
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+/***************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -87,4 +95,49 @@ void name##_free(Queue *q) {                                                    
         free(current);                                                                  \
     }                                                                                   \
     free(q);                                                                            \
+}
+
+
+DEFINE_QUEUE(struct TreeNode *, queue);
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+int minDepth(struct TreeNode *root) {
+    if (!root)
+        return 0;
+
+    Queue *q = queue_init();
+
+    queue_enqueue(q, root);
+    int level = 1;
+
+    while (!queue_is_empty(q)) {
+        int nodes_in_level = queue_size(q);
+        
+        for (int i = 0; i < nodes_in_level; i++) {
+            struct TreeNode *n = queue_dequeue(q);
+
+            // Check if it's a leaf node
+            if (!n->left && !n->right) {
+                queue_free(q);
+                return level;
+            }
+
+            if (n->left)
+                queue_enqueue(q, n->left);
+            if (n->right)
+                queue_enqueue(q, n->right);
+        }
+        level++;
+    }
+
+    // Should never reach here if tree is valid
+    queue_free(q);
+    return level;
 }
