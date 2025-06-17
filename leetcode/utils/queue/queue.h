@@ -2,17 +2,21 @@
 #include <stdlib.h>
 
 #define DEFINE_QUEUE(type, name)                                                        \
+                                                                                        \
+/* Internal node structure (do not use directly). */                                    \
 typedef struct name##_Node {                                                            \
     type data;                                                                          \
     struct name##_Node *next;                                                           \
 } name##_Node;                                                                          \
                                                                                         \
+/* Public queue handle */                                                               \
 typedef struct {                                                                        \
     name##_Node *head;                                                                  \
     name##_Node *tail;                                                                  \
     int size;                                                                           \
 } Queue;                                                                                \
                                                                                         \
+/* Internal function to create a note, used by enqueue() */                             \
 static name##_Node *name##_create_node(type data) {                                     \
     name##_Node *node = (name##_Node *)malloc(sizeof(name##_Node));                     \
     if (!node) {                                                                        \
