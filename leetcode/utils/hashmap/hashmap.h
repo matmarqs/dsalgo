@@ -1,8 +1,5 @@
-#include <stdbool.h>
-
-/******************************************************/
-
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 // Macro to define a generic HashMap
@@ -135,79 +132,29 @@
         } \
     }
 
-// Hash function for integers
-size_t char_hash(char key) {
+// Hash function for integers or chars
+size_t int_hash(int key) {
     return (size_t)(key * 31);
 }
 
-// Equality function for integers
-bool char_equals(char a, char b) {
+// Equality function for integers or chars
+bool int_equals(int a, int b) {
     return a == b;
 }
 
-DEFINE_HASHMAP(char, char, hashmap, char_hash, char_equals, '\0');
-
-bool isIsomorphic_HashMap(char* s, char* t) {
-    size_t len_s = strlen(s);
-    size_t len_t = strlen(t);
-    if (len_s != len_t)
-        return false;
-    
-    HashMap *map1 = hashmap_create(256);
-    HashMap *map2 = hashmap_create(256);
-    for (int i = 0; i < len_s; i++) {
-        if (!hashmap_haskey(map1, s[i])) {
-            hashmap_set(map1, s[i], t[i]);
-        }
-        else {
-            if (hashmap_get(map1, s[i]) != t[i]) {
-                return false;
-            }
-        }
-
-        if (!hashmap_haskey(map2, t[i])) {
-            hashmap_set(map2, t[i], s[i]);
-        }
-        else {
-            if (hashmap_get(map2, t[i]) != s[i]) {
-                return false;
-            }
-        }
+// Hash function for strings (djb2 algorithm)
+size_t str_hash(char *key) {
+    size_t hash = 5381;
+    int c;
+    while ((c = *key++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
     }
-
-    return true;
+    return hash;
 }
 
-/******************************************************/
-
-
-bool isIsomorphic(char* s, char* t) {
-    size_t len_s = strlen(s);
-    size_t len_t = strlen(t);
-    if (len_s != len_t)
-        return false;
-    
-    char map1[256] = { '\0' };
-    char map2[256] = { '\0' };
-    for (int i = 0; i < len_s; i++) {
-        if (map1[s[i]] == '\0') {
-            map1[s[i]] = t[i];
-        }
-        else {
-            if (map1[s[i]] != t[i]) {
-                return false;
-            }
-        }
-
-        if (map2[t[i]] == '\0') {
-            map2[t[i]] = s[i];
-        }
-        else {
-            if (map2[t[i]] != s[i]) {
-                return false;
-            }
-        }
-    }
-
-    return true;
+// Equality function for strings
+bool str_equals(char *a, char *b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+    return strcmp(a, b) == 0;
 }
