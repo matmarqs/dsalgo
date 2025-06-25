@@ -44,6 +44,7 @@
         name##_Chain *chains; \
         int size; \
         int cardinality; \
+        int not_found; \
     } name; \
     \
     static void prefix##_inner_rehash(name *map, int new_cardinality) { \
@@ -72,8 +73,9 @@
     \
     name *prefix##_create(int cardinality) { \
         name *map = (name *)malloc(sizeof(name)); \
-        map->cardinality = cardinality; \
         map->size = 0; \
+        map->cardinality = cardinality; \
+        map->not_found = NOT_FOUND; \
         map->chains = (name##_Chain *)malloc(sizeof(name##_Chain) * cardinality); \
         for (int i = 0; i < cardinality; i++) { \
             map->chains[i].head = NULL; \
@@ -114,7 +116,7 @@
             } \
             current = current->next; \
         } \
-        return NOT_FOUND; \
+        return map->not_found; \
     } \
     \
     void prefix##_set(name *map, key_type key, val_type val) { \
