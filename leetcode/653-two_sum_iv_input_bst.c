@@ -1,9 +1,14 @@
 #include <stdbool.h>
 
-/******************************************************************************************************/
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+/******************************************************/
 
 #include <stdlib.h>
-#include <string.h>
 
 // Macro to define a generic name
 #define DEFINE_HASHMAP(name, prefix, key_type, val_type, hash_func, key_equals, NOT_FOUND) \
@@ -170,19 +175,31 @@ bool int_equals(int a, int b) {
     return a == b;
 }
 
-// Hash function for strings (djb2 algorithm)
-size_t str_hash(char *key) {
-    size_t hash = 5381;
-    int c;
-    while ((c = *key++)) {
-        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+DEFINE_HASHMAP(HashMap, hashmap, int, int, int_hash, int_equals, 1000000);
+
+bool inOrderTraversal(struct TreeNode *root, int k, HashMap *h, bool found) {
+    if (found)
+        return true;
+    if (!root) {
+        return false;
     }
-    return hash;
+
+    bool new_found = inOrderTraversal(root->left, k, h, found);
+
+    if (new_found)
+        return true;
+    if (hashmap_haskey(h, k-root->val)) {
+        return new_found = true;
+    }
+    hashmap_set(h, root->val, k-root->val);
+
+    new_found = inOrderTraversal(root->right, k, h, found);
+
+    return new_found;
 }
 
-// Equality function for strings
-bool str_equals(char *a, char *b) {
-    if (a == b) return true;
-    if (!a || !b) return false;
-    return strcmp(a, b) == 0;
+bool findTarget(struct TreeNode* root, int k) {
+    HashMap *h = hashmap_create(10);
+
+    return inOrderTraversal(root, k, h, false);
 }
