@@ -1,94 +1,79 @@
-#include <stdio.h>
+#ifndef QUEUE_H
+#define QUEUE_H
+
 #include <stdlib.h>
 
-#define DEFINE_QUEUE(type, name)                                                        \
-                                                                                        \
-/* Internal node structure (do not use directly). */                                    \
-typedef struct name##_Node {                                                            \
-    type data;                                                                          \
-    struct name##_Node *next;                                                           \
-} name##_Node;                                                                          \
-                                                                                        \
-/* Public queue handle */                                                               \
-typedef struct {                                                                        \
-    name##_Node *head;                                                                  \
-    name##_Node *tail;                                                                  \
-    int size;                                                                           \
-} Queue;                                                                                \
-                                                                                        \
-/* Internal function to create a note, used by enqueue() */                             \
-static name##_Node *name##_create_node(type data) {                                     \
-    name##_Node *node = (name##_Node *)malloc(sizeof(name##_Node));                     \
-    if (!node) {                                                                        \
-        fprintf(stderr, "Memory allocation failed\n");                                  \
-        exit(EXIT_FAILURE);                                                             \
-    }                                                                                   \
-    node->data = data;                                                                  \
-    node->next = NULL;                                                                  \
-    return node;                                                                        \
-}                                                                                       \
-                                                                                        \
-Queue *name##_init() {                                                                  \
-    Queue *q = (Queue *)malloc(sizeof(Queue));                                          \
-    if (!q) {                                                                           \
-        fprintf(stderr, "Memory allocation failed\n");                                  \
-        exit(EXIT_FAILURE);                                                             \
-    }                                                                                   \
-    q->head = NULL;                                                                     \
-    q->tail = NULL;                                                                     \
-    q->size = 0;                                                                        \
-    return q;                                                                           \
-}                                                                                       \
-                                                                                        \
-int name##_is_empty(Queue *q) {                                                         \
-    return q->size == 0;                                                                \
-}                                                                                       \
-                                                                                        \
-type name##_peek(Queue *q) {                                                            \
-    if (name##_is_empty(q)) {                                                           \
-        fprintf(stderr, "Queue is empty, cannot peek\n");                               \
-        exit(EXIT_FAILURE);                                                             \
-    }                                                                                   \
-    return q->head->data;                                                               \
-}                                                                                       \
-                                                                                        \
-int name##_size(Queue *q) {                                                             \
-    return q->size;                                                                     \
-}                                                                                       \
-                                                                                        \
-type name##_dequeue(Queue *q) {                                                         \
-    if (name##_is_empty(q)) {                                                           \
-        fprintf(stderr, "Queue is empty, cannot dequeue\n");                            \
-        exit(EXIT_FAILURE);                                                             \
-    }                                                                                   \
-    type data = q->head->data;                                                          \
-    name##_Node *old_head = q->head;                                                    \
-    q->head = q->head->next;                                                            \
-    free(old_head);                                                                     \
-    q->size--;                                                                          \
-    if (q->size == 0) {                                                                 \
-        q->tail = NULL;                                                                 \
-    }                                                                                   \
-    return data;                                                                        \
-}                                                                                       \
-                                                                                        \
-void name##_enqueue(Queue *q, type data) {                                              \
-    name##_Node *new_node = name##_create_node(data);                                   \
-    if (name##_is_empty(q)) {                                                           \
-        q->head = new_node;                                                             \
-        q->tail = new_node;                                                             \
-    } else {                                                                            \
-        q->tail->next = new_node;                                                       \
-        q->tail = new_node;                                                             \
-    }                                                                                   \
-    q->size++;                                                                          \
-}                                                                                       \
-                                                                                        \
-void name##_free(Queue *q) {                                                            \
-    while (q->head) {                                                                   \
-        name##_Node *current = q->head;                                                 \
-        q->head = q->head->next;                                                        \
-        free(current);                                                                  \
-    }                                                                                   \
-    free(q);                                                                            \
-}
+#define DEFINE_QUEUE(name, prefix, type) \
+    \
+    typedef struct prefix##_Node { \
+        type data; \
+        struct prefix##_Node *next; \
+    } prefix##_Node; \
+    \
+    typedef struct { \
+        prefix##_Node *head; \
+        prefix##_Node *tail; \
+        int size; \
+    } name; \
+    \
+    static prefix##_Node *prefix##_create_node(type data) { \
+        prefix##_Node *node = (prefix##_Node*)malloc(sizeof(prefix##_Node)); \
+        node->data = data; \
+        node->next = NULL; \
+        return node; \
+    } \
+    \
+    name *prefix##_create() { \
+        name *q = (name*)malloc(sizeof(name)); \
+        q->head = NULL; \
+        q->tail = NULL; \
+        q->size = 0; \
+        return q; \
+    } \
+    \
+    int prefix##_is_empty(name *q) { \
+        return q->size == 0; \
+    } \
+    \
+    type prefix##_peek(name *q) { \
+        return q->head->data; \
+    } \
+    \
+    int prefix##_size(name *q) { \
+        return q->size; \
+    } \
+    \
+    type prefix##_dequeue(name *q) { \
+        type data = q->head->data; \
+        prefix##_Node *old_head = q->head; \
+        q->head = q->head->next; \
+        free(old_head); \
+        q->size--; \
+        if (q->size == 0) { \
+            q->tail = NULL; \
+        } \
+        return data; \
+    } \
+    \
+    void prefix##_enqueue(name *q, type data) { \
+        prefix##_Node *new_node = prefix##_create_node(data); \
+        if (prefix##_is_empty(q)) { \
+            q->head = new_node; \
+            q->tail = new_node; \
+        } else { \
+            q->tail->next = new_node; \
+            q->tail = new_node; \
+        } \
+        q->size++; \
+    } \
+    \
+    void prefix##_free(name *q) { \
+        while (q->head) { \
+            prefix##_Node *current = q->head; \
+            q->head = q->head->next; \
+            free(current); \
+        } \
+        free(q); \
+    }
+
+#endif // QUEUE_H
