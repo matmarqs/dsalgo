@@ -1,12 +1,9 @@
+#ifndef HASHSET_H
+#define HASHSET_H
+
 #include <stdbool.h>
 
-struct TreeNode {
-    int val;
-    struct TreeNode *left;
-    struct TreeNode *right;
-};
-
-/******************************************************/
+/************************************************************************************************/
 
 #include <stdlib.h>
 
@@ -162,24 +159,25 @@ bool int_equals(int a, int b) {
     return a == b;
 }
 
-DEFINE_HASHSET(HashSet, hashset, int, int_hash, int_equals);
+/************************************************************************************************/
 
+#include <string.h>
 
-bool PreOrderTraversal(struct TreeNode *root, int k, HashSet *set) {
-    if (!root) {
-        return false;
+// Hash function for strings (djb2 algorithm)
+size_t str_hash(char *key) {
+    size_t hash = 5381;
+    int c;
+    while ((c = *key++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
     }
-
-    if (hashset_contains(set, k-root->val)) {
-        return true;
-    }
-    hashset_add(set, root->val);
-
-    return PreOrderTraversal(root->left, k, set) || PreOrderTraversal(root->right, k, set);
+    return hash;
 }
 
-bool findTarget(struct TreeNode* root, int k) {
-    HashSet *set = hashset_create(15);
-
-    return PreOrderTraversal(root, k, set);
+// Equality function for strings
+bool str_equals(char *a, char *b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+    return strcmp(a, b) == 0;
 }
+
+#endif // HASHSET_H
