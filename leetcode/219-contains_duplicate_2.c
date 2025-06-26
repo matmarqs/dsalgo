@@ -172,19 +172,20 @@ bool int_equals(int a, int b) {
     return a == b;
 }
 
-// Hash function for strings (djb2 algorithm)
-size_t str_hash(char *key) {
-    size_t hash = 5381;
-    int c;
-    while ((c = *key++)) {
-        hash = ((hash << 5) + hash) + c; // hash * 33 + c
-    }
-    return hash;
-}
+DEFINE_HASHMAP(HashMap, hashmap, int, int, int_hash, int_equals, 1000000001);
 
-// Equality function for strings
-bool str_equals(char *a, char *b) {
-    if (a == b) return true;
-    if (!a || !b) return false;
-    return strcmp(a, b) == 0;
+bool containsNearbyDuplicate(int* nums, int numsSize, int k) {
+    HashMap *map = hashmap_create(5);
+    for (int i = 0; i < numsSize; i++) {
+        if (hashmap_haskey(map, nums[i])) {
+            int j = hashmap_get(map, nums[i]);
+            if (i-j <= k) {
+                hashmap_free(map);
+                return true;
+            }
+        }
+        hashmap_set(map, nums[i], i);
+    }
+    hashmap_free(map);
+    return false;
 }
