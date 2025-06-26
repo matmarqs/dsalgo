@@ -151,7 +151,7 @@
 
 // Hash function for integers or chars
 size_t int_hash(int key) {
-    return (size_t)(key * 31);
+    return (size_t)(key * 31LL);
 }
 
 // Equality function for integers or chars
