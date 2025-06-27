@@ -52,6 +52,12 @@ void djsets_union(DisjointSets *djsets, int i, int j) {
     }
 }
 
+void djsets_free(DisjointSets *djsets) {
+    free(djsets->rank);
+    free(djsets->parent);
+    free(djsets);
+}
+
 bool validPath(int n, int** edges, int edgesSize, int* edgesColSize, int source, int destination) {
     if (source == destination) return true;
 
