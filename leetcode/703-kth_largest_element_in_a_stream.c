@@ -119,21 +119,6 @@ KthLargest* kthLargestCreate(int k, int* nums, int numsSize) {
     return heap;
 }
 
-int get_kth_largest(KthLargest *obj) {
-    int k = obj->k;
-    int *array = (int *) malloc(sizeof(int) * k);
-    int kth_largest;
-    for (int i = 0; i < k; i++) {
-        kth_largest = heap_extract(obj);
-        array[i] = kth_largest;
-    }
-    for (int i = 0; i < k; i++) {
-        heap_insert(obj, array[i]);
-    }
-    free(array);
-    return kth_largest;
-}
-
 int kthLargestAdd(KthLargest* obj, int val) {
     heap_insert(obj, val);
     if (heap_size(obj) > obj->k) {
