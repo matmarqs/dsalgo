@@ -150,7 +150,6 @@ data-structures-algorithms-code/
 **/nosetests.xml
 **/coverage.xml
 **/*.cover
-**/*.py,cover
 **/.hypothesis/
 **/.pytest_cache/
 **/cover/
