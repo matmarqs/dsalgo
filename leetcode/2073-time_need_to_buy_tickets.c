@@ -101,7 +101,7 @@ typedef struct {
 
 DEFINE_QUEUE(Queue, queue, Person);
 
-int timeRequiredToBuy(int* tickets, int ticketsSize, int k) {
+int timeRequiredToBuy_Queue(int* tickets, int ticketsSize, int k) {
     Queue *q = queue_create(ticketsSize);
     for (int i = 0; i < ticketsSize; i++) {
         queue_enqueue(q, (Person) {i, tickets[i]});
@@ -126,5 +126,22 @@ int timeRequiredToBuy(int* tickets, int ticketsSize, int k) {
     }
 
     queue_free(q);
+    return time;
+}
+
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+int timeRequiredToBuy(int* tickets, int ticketsSize, int k) {
+    int time = 0;
+    for (int i = 0; i < ticketsSize; i++) {
+        if (i <= k) {
+            time += min(tickets[i], tickets[k]);    /* kth person has to wait min(tickets[i], tickets[k]) for people in front of him */
+        }
+        else {
+            time += min(tickets[i], tickets[k] - 1); /* kth person has to wait min(tickets[i], tickets[k] - 1) for people in the back of him */
+        }
+    }
     return time;
 }
