@@ -36,7 +36,7 @@
         q->capacity = new_capacity; \
     } \
     \
-    name *prefix##_create(int initial_capacity) { \
+    name *prefix##_init(int initial_capacity) { \
         name *q = (name *)malloc(sizeof(name)); \
         q->buffer = (type *)malloc(initial_capacity * sizeof(type)); \
         q->capacity = initial_capacity; \
