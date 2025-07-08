@@ -27,6 +27,8 @@
         while (power < n) power *= 2; \
         return power; \
     } \
+    /* Forward declarations to resolve dependency */ \
+    void prefix##_add(name *set, key_type key); \
     \
     static void prefix##_inner_rehash(name *set) { \
         int new_capacity = set->capacity * 2; \

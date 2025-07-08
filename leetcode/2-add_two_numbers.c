@@ -1,10 +1,12 @@
-#include <stdlib.h>
-
 /* Definition for singly-linked list. */
 struct ListNode {
     int val;
     struct ListNode *next;
 };
+
+/************************************************/
+
+#include <stdlib.h>
 
 struct ListNode* createListNode() {
     struct ListNode* l = (struct ListNode *) malloc(sizeof(struct ListNode));

@@ -6,143 +6,134 @@
 
 #define DEFINE_HASHSET(name, prefix, key_type, hash_func, key_equals) \
     \
-    typedef struct name##_Node { \
+    typedef enum { FREE, OCCUPIED, DELETED } name##_SlotState; \
+    \
+    typedef struct { \
         key_type key; \
-        struct name##_Node *next; \
-    } name##_Node; \
+        name##_SlotState state; \
+    } name##_Slot; \
     \
     typedef struct { \
-        name##_Node *head; \
-    } name##_Chain; \
-    \
-    static name##_Node *prefix##_inner_create_node(key_type key) { \
-        name##_Node *n = (name##_Node *)malloc(sizeof(name##_Node)); \
-        n->key = key; \
-        n->next = NULL; \
-        return n; \
-    } \
-    \
-    static void prefix##_inner_append_to_chain(name##_Chain *chain, key_type key) { \
-        name##_Node *new_node = prefix##_inner_create_node(key); \
-        new_node->next = chain->head; \
-        chain->head = new_node; \
-    } \
-    \
-    static bool prefix##_inner_chain_contains(name##_Chain *chain, key_type key) { \
-        name##_Node *current = chain->head; \
-        while (current) { \
-            if (key_equals(current->key, key)) { \
-                return true; \
-            } \
-            current = current->next; \
-        } \
-        return false; \
-    } \
-    \
-    static void prefix##_inner_remove_from_chain(name##_Chain *chain, key_type key) { \
-        name##_Node *current = chain->head; \
-        if (!current) return; \
-        \
-        if (key_equals(current->key, key)) { \
-            chain->head = current->next; \
-            free(current); \
-            return; \
-        } \
-        \
-        while (current->next) { \
-            if (key_equals(current->next->key, key)) { \
-                name##_Node *to_remove = current->next; \
-                current->next = to_remove->next; \
-                free(to_remove); \
-                return; \
-            } \
-            current = current->next; \
-        } \
-    } \
-    \
-    static void prefix##_inner_free_chain(name##_Chain *chain) { \
-        while (chain->head) { \
-            name##_Node *next = chain->head->next; \
-            free(chain->head); \
-            chain->head = next; \
-        } \
-    } \
-    \
-    typedef struct { \
-        name##_Chain *chains; \
+        name##_Slot *slots; \
         int size; \
-        int cardinality; \
+        int capacity; \
+        int threshold; \
     } name; \
     \
-    static void prefix##_inner_rehash(name *set, int new_cardinality) { \
-        name##_Chain *new_chains = (name##_Chain *)malloc(sizeof(name##_Chain) * new_cardinality); \
-        if (!new_chains) return; \
-        for (int i = 0; i < new_cardinality; i++) { \
-            new_chains[i].head = NULL; \
-        } \
-        int old_cardinality = set->cardinality; \
-        name##_Chain *old_chains = set->chains; \
-        for (int i = 0; i < old_cardinality; i++) { \
-            name##_Node *node = old_chains[i].head; \
-            while (node) { \
-                name##_Node *next_node = node->next; \
-                size_t hash_val = hash_func(node->key); \
-                int new_idx = (int)(hash_val % (size_t)new_cardinality); \
-                node->next = new_chains[new_idx].head; \
-                new_chains[new_idx].head = node; \
-                node = next_node; \
-            } \
-        } \
-        set->chains = new_chains; \
-        set->cardinality = new_cardinality; \
-        free(old_chains); \
+    static int prefix##_next_power_of_two(int n) { \
+        if (n <= 1) return 1; \
+        int power = 1; \
+        while (power < n) power *= 2; \
+        return power; \
     } \
     \
-    name *prefix##_create(int cardinality) { \
-        name *set = (name *)malloc(sizeof(name)); \
-        set->cardinality = cardinality; \
+    \
+    /* Forward declarations to resolve dependency */ \
+    void prefix##_add(name *set, key_type key); \
+    \
+    static void prefix##_inner_rehash(name *set) { \
+        int new_capacity = set->capacity * 2; \
+        name##_Slot *new_slots = calloc(new_capacity, sizeof(name##_Slot)); \
+        int old_capacity = set->capacity; \
+        name##_Slot *old_slots = set->slots; \
+        \
+        set->slots = new_slots; \
+        set->capacity = new_capacity; \
+        set->threshold = (int)(new_capacity * 0.7); \
         set->size = 0; \
-        set->chains = (name##_Chain *)malloc(sizeof(name##_Chain) * cardinality); \
-        for (int i = 0; i < cardinality; i++) { \
-            set->chains[i].head = NULL; \
+        \
+        for (int i = 0; i < old_capacity; i++) { \
+            if (old_slots[i].state == OCCUPIED) { \
+                prefix##_add(set, old_slots[i].key); \
+            } \
         } \
+        free(old_slots); \
+    } \
+    \
+    name *prefix##_create(int initial_capacity) { \
+        name *set = malloc(sizeof(name)); \
+        set->capacity = prefix##_next_power_of_two(initial_capacity); \
+        if (set->capacity < 16) set->capacity = 16; \
+        set->slots = calloc(set->capacity, sizeof(name##_Slot)); \
+        set->size = 0; \
+        set->threshold = (int)(set->capacity * 0.7); \
         return set; \
     } \
     \
     void prefix##_free(name *set) { \
-        for (int i = 0; i < set->cardinality; i++) { \
-            prefix##_inner_free_chain(&set->chains[i]); \
-        } \
-        free(set->chains); \
+        free(set->slots); \
         free(set); \
     } \
     \
     bool prefix##_contains(name *set, key_type key) { \
+        if (set->size == 0) return false; \
         size_t hash_val = hash_func(key); \
-        int idx = (int)(hash_val % (size_t)set->cardinality); \
-        return prefix##_inner_chain_contains(&set->chains[idx], key); \
+        int idx = (int)(hash_val & (set->capacity - 1)); \
+        \
+        for (int i = 0; i < set->capacity; i++) { \
+            int j = (idx + i) & (set->capacity - 1); \
+            if (set->slots[j].state == FREE) return false; \
+            if (set->slots[j].state == OCCUPIED && \
+                key_equals(set->slots[j].key, key)) { \
+                return true; \
+            } \
+        } \
+        return false; \
     } \
     \
     void prefix##_add(name *set, key_type key) { \
+        if (set->size >= set->threshold) { \
+            prefix##_inner_rehash(set); \
+        } \
+        \
         size_t hash_val = hash_func(key); \
-        int idx = (int)(hash_val % (size_t)set->cardinality); \
-        name##_Chain *chain = &set->chains[idx]; \
-        if (!prefix##_inner_chain_contains(chain, key)) { \
-            prefix##_inner_append_to_chain(chain, key); \
-            set->size++; \
-            if ((long long)set->size * 4 > (long long)set->cardinality * 3) { \
-                prefix##_inner_rehash(set, set->cardinality * 2); \
+        int idx = (int)(hash_val & (set->capacity - 1)); \
+        int first_deleted = -1; \
+        \
+        for (int i = 0; i < set->capacity; i++) { \
+            int j = (idx + i) & (set->capacity - 1); \
+            \
+            if (set->slots[j].state == OCCUPIED) { \
+                if (key_equals(set->slots[j].key, key)) return; \
+            } else { \
+                if (set->slots[j].state == FREE) { \
+                    if (first_deleted == -1) { \
+                        set->slots[j].key = key; \
+                        set->slots[j].state = OCCUPIED; \
+                        set->size++; \
+                        return; \
+                    } else { \
+                        set->slots[first_deleted].key = key; \
+                        set->slots[first_deleted].state = OCCUPIED; \
+                        set->size++; \
+                        return; \
+                    } \
+                } else if (first_deleted == -1) { \
+                    first_deleted = j; \
+                } \
             } \
+        } \
+        \
+        if (first_deleted != -1) { \
+            set->slots[first_deleted].key = key; \
+            set->slots[first_deleted].state = OCCUPIED; \
+            set->size++; \
         } \
     } \
     \
     void prefix##_remove(name *set, key_type key) { \
         size_t hash_val = hash_func(key); \
-        int idx = (int)(hash_val % (size_t)set->cardinality); \
-        name##_Chain *chain = &set->chains[idx]; \
-        if (prefix##_inner_chain_contains(chain, key)) { \
-            prefix##_inner_remove_from_chain(chain, key); \
-            set->size--; \
+        int idx = (int)(hash_val & (set->capacity - 1)); \
+        \
+        for (int i = 0; i < set->capacity; i++) { \
+            int j = (idx + i) & (set->capacity - 1); \
+            if (set->slots[j].state == FREE) return; \
+            if (set->slots[j].state == OCCUPIED && \
+                key_equals(set->slots[j].key, key)) { \
+                set->slots[j].state = DELETED; \
+                set->size--; \
+                return; \
+            } \
         } \
     }
 
