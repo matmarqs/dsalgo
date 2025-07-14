@@ -1,10 +1,11 @@
-#ifndef QUEUE_H
-#define QUEUE_H
+#include <stdbool.h>
+
+/*******************************************************************************/
 
 // Circular buffer implementation
 
 #include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
 
 #define DEFINE_QUEUE(name, prefix, type) \
     \
@@ -36,7 +37,7 @@
         q->capacity = new_capacity; \
     } \
     \
-    name *prefix##_init(int initial_capacity) { \
+    name *prefix##_create(int initial_capacity) { \
         name *q = (name *)malloc(sizeof(name)); \
         q->buffer = (type *)malloc(initial_capacity * sizeof(type)); \
         q->capacity = initial_capacity; \
@@ -93,4 +94,54 @@
         return q->capacity; \
     }
 
-#endif // QUEUE_H
+typedef struct {
+    int index;
+    int num_tickets;
+} Person;
+
+DEFINE_QUEUE(Queue, queue, Person);
+
+int timeRequiredToBuy_Queue(int* tickets, int ticketsSize, int k) {
+    Queue *q = queue_create(ticketsSize);
+    for (int i = 0; i < ticketsSize; i++) {
+        queue_enqueue(q, (Person) {i, tickets[i]});
+    }
+
+    bool done = false;
+    int time = 0;
+
+    while (!done) {
+        Person person = queue_dequeue(q);
+        if (person.index == k && person.num_tickets == 1) {
+            done = true;
+        }
+        else if (person.num_tickets == 1) {
+            ;
+        }
+        else {
+            person.num_tickets--;
+            queue_enqueue(q, person);
+        }
+        time++;
+    }
+
+    queue_free(q);
+    return time;
+}
+
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+int timeRequiredToBuy(int* tickets, int ticketsSize, int k) {
+    int time = 0;
+    for (int i = 0; i < ticketsSize; i++) {
+        if (i <= k) {
+            time += min(tickets[i], tickets[k]);    /* kth person has to wait min(tickets[i], tickets[k]) for people in front of him */
+        }
+        else {
+            time += min(tickets[i], tickets[k] - 1); /* kth person has to wait min(tickets[i], tickets[k] - 1) for people in the back of him */
+        }
+    }
+    return time;
+}

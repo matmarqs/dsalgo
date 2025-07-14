@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+/************************************/
+
 #include <stdlib.h>
 
 #define DEFINE_HASHMAP(name, prefix, key_type, val_type, hash_func, key_equals, NOT_FOUND) \
@@ -159,22 +161,52 @@ bool int_equals(int a, int b) {
     return a == b;
 }
 
-
-#include <string.h>
-
-// Hash function for strings (djb2 algorithm)
-size_t str_hash(char *key) {
-    size_t hash = 5381;
-    int c;
-    while ((c = *key++)) {
-        hash = ((hash << 5) + hash) + c;
-    }
-    return hash;
+int min(int a, int b) {
+    return a < b ? a : b;
 }
 
-// Equality function for strings
-bool str_equals(char *a, char *b) {
-    if (a == b) return true;
-    if (!a || !b) return false;
-    return strcmp(a, b) == 0;
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+DEFINE_HASHMAP(HashMap, hashmap, int, int, int_hash, int_equals, 1001);
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* intersect(int* nums1, int nums1Size, int* nums2, int nums2Size, int* returnSize) {
+    int min_size = min(nums1Size, nums2Size);
+    int max_size = max(nums1Size, nums2Size);
+    int *min_array = nums1Size == min_size ? nums1 : nums2;
+    int *max_array = nums1Size != min_size ? nums1 : nums2;
+
+    HashMap *map = hashmap_create(3 * min_size / 2);
+
+    for (int i = 0; i < min_size; i++) {
+        if (!hashmap_haskey(map, min_array[i])) {
+            hashmap_set(map, min_array[i], 1);
+        }
+        else {
+            int current = hashmap_get(map, min_array[i]);
+            hashmap_set(map, min_array[i], current + 1);
+        }
+    }
+
+    int *return_array = (int *) malloc(sizeof(int) * min_size);
+    int size = 0;
+
+    for (int i = 0; i < max_size; i++) {
+        if (hashmap_haskey(map, max_array[i])) {
+            int current = hashmap_get(map, max_array[i]);
+            if (current > 0) {
+                return_array[size++] = max_array[i];
+                hashmap_set(map, max_array[i], current-1);
+            }
+        }
+    }
+
+    hashmap_free(map);
+
+    *returnSize = size;
+    return return_array;
 }
